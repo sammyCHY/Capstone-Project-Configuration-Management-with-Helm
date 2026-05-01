@@ -28,11 +28,88 @@ Jenkins Server Setup.
 
 **Objective:** Configure Jenkins server for a CI/CD Pipeline automation.
 
+Below is the Jenkins Server created to Implement this project.
+
+![The Image below shows the Configuration of Jenkins server for a CI/CD Pipeline automation](image/configuration-jenkins-helm-server.png)
+
 ### Steps:
 
 1. Install Jenkins on a dedicated server (with detailed explanations). 
 
+Below is the step by step process of Jenkins installation and configuration on the AWS Server
+
+   - After creating The server for the jenkins installation (the server Image created for the installation is above) Although, I created "Ubuntu server" but still have other options of servers like; Redhat, Amazon Linux AWS, MacOS, Debian, Window etc.
+
+   - ssh into the server and run "sudo apt update"
+![The Image shows the ssh into the server](image/ssh-login-server.png)
+
+   - Then run "sudo apt update"
+
+![The Image shows the server update](image/sudo-apt-update.png)
+
+
+Then, Jenkins Installation, You have to search for Jenkins official site and copy the linux Ubuntu package and Install on the server. The link here is the jenkins official site [click](https://www.jenkins.io/doc/book/installing/)
+
+![The Image shows the official site](image/jenkins-official1.png)
+
+
+![The Image shows the official site](image/jenkins-official2.png)
+
+![The Image shows the official site](image/jenkins-official3.png)
+
+![The Image shows the official site](image/jenkins-official4.png)
+
+![The Image shows the official site](image/jenkins-official5.png)
+
+![The Image shows the official site](image/jenkins-official6.png)
+
+
+Before the Installation of Jenkins, Java package manager have to be installed first like openjdk-19,21, etc.
+
+   `sudo apt update`
+   `sudo apt install fontconfig openjdk-21-jre`
+   `java -version`
+
+
+  ```
+  sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc \
+  https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc]" \
+  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt update
+sudo apt install jenkins
+```
+
+![The Image shows Jenkins Installation](image/jenkins-installation.png)
+
+After the Installation, access the server and configure the Inbound security group `8080 port` range.
+
+![The Image shows the jenkins security group port configuration ](image/jenkins-server-port-configuration.png)
+
+Login to the jenkins by copying the public Ip of the server then ":8080" and paste in a browser to finalize the activation.
+
+![The Image shows the server-IP](image/server-ip.png)
+
+![The Image shows the jenkins server-IP on the browser](image/jenkins-server-ip.png)
+
+![The Image shows initial jenkins administrative password](image/jenkins-administrative-password.png)
+
+![The Image shows initial jenkins administrative password](image/jenkins-administrative-password1.png)
+
+![The Image shows initial jenkins administrative password](image/jenkins-administrative-password2.png)
+
+![The Image shows initial jenkins administrative password](image/jenkins-administrative-password3.png)
+
+![The Image shows initial jenkins administrative password](image/jenkins-administrative-password4.png)
+
+![The Image shows initial jenkins administrative password](image/jenkins-administrative-password5.png)
+
+![The Image shows initial jenkins administrative password](image/jenkins-hosted.png)
+
+
 2. Set up necessary Plugins (Git, Helm, etc.) with simple configurations.
+
 
 3. Configure Jenkins with basic security measures suitable for beginners.
 
@@ -52,6 +129,8 @@ Jenkins Server Setup.
 **Steps:**
 
 1. Explain what Helm charts are and their purpose.
+
+
 
 2. Walkthrough of creating a basic Helm chart for a web application.
 
