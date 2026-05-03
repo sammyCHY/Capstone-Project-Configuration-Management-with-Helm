@@ -584,13 +584,13 @@ Above is the final Jenkins file used to deploy my application due to `duplicate 
 
 Then, I **push** again and the pipeline build successfully. Image below is the result of the final project.
 
-![The Image shows the helm and jenkins ci/cd build successfully](image/pipeline-build-successfully.png)
+![The Image shows the helm and jenkins ci/cd build successfully](image/Pipeline-build-successfully.png)
 
-![The Image shows the helm and jenkins ci/cd build successfully](image/pipeline-build-successfully1.png)
+![The Image shows the helm and jenkins ci/cd build successfully](image/Pipeline-build-successfully1.png)
 
-![The Image shows the helm and jenkins ci/cd build successfully](image/pipeline-build-successfully2.png)
+![The Image shows the helm and jenkins ci/cd build successfully](image/Pipeline-build-successfully2.png)
 
-![The Image shows the helm and jenkins ci/cd build successfully](image/pipeline-build-successfully3.png)
+![The Image shows the helm and jenkins ci/cd build successfully](image/Pipeline-build-successfully3.png)
 
    - Provide step-by-step instructions for Integrating Helm with Jenkins.
 
