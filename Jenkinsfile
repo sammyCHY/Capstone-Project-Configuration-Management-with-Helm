@@ -1,10 +1,14 @@
 pipeline {
     agent any
 
+    environment {
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/sammyCHY/Capstone-Project-Configuration-Management-with-Helm.git'
+                git 'https://github.com/sammyCHY/Capstone-Project-Configuration-Management-with-Helm.git'
             }
         }
 
