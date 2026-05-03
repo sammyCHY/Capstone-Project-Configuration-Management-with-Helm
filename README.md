@@ -426,6 +426,199 @@ After this I need to activate a controlled Github webhook with jenkins url.
  ![The Image shows github webhook activated with jenkins](image/github-webhook2.png)
 Instructions:
 
+
+At this point I try to push to github for the pipeline to activate and start building but unfortunately failed, the reason is that my jenkins it's talking to a wrong endpoint. below is the failure output pipeline script.
+
+   ### Error Script below:
+
+```
+Started by GitHub push by sammyCHY
+Obtained Jenkinsfile from git https://github.com/sammyCHY/Capstone-Project-Configuration-Management-with-Helm.git
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /var/lib/jenkins/workspace/helm-pipeline
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+The recommended git tool is: git
+No credentials specified
+Cloning the remote Git repository
+Cloning repository https://github.com/sammyCHY/Capstone-Project-Configuration-Management-with-Helm.git
+ > git init /var/lib/jenkins/workspace/helm-pipeline # timeout=10
+Fetching upstream changes from https://github.com/sammyCHY/Capstone-Project-Configuration-Management-with-Helm.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.53.0'
+ > git fetch --tags --force --progress -- https://github.com/sammyCHY/Capstone-Project-Configuration-Management-with-Helm.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git config remote.origin.url https://github.com/sammyCHY/Capstone-Project-Configuration-Management-with-Helm.git # timeout=10
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
+Avoid second fetch
+ > git rev-parse refs/remotes/origin/main^{commit} # timeout=10
+Checking out Revision fa51d6d0cef21107fb064f9f486aa2963bb2bb89 (refs/remotes/origin/main)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f fa51d6d0cef21107fb064f9f486aa2963bb2bb89 # timeout=10
+Commit message: "updating"
+First time build. Skipping changelog.
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Checkout Code)
+[Pipeline] git
+The recommended git tool is: git
+No credentials specified
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/helm-pipeline/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/sammyCHY/Capstone-Project-Configuration-Management-with-Helm.git # timeout=10
+Fetching upstream changes from https://github.com/sammyCHY/Capstone-Project-Configuration-Management-with-Helm.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.53.0'
+ > git fetch --tags --force --progress -- https://github.com/sammyCHY/Capstone-Project-Configuration-Management-with-Helm.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/main^{commit} # timeout=10
+Checking out Revision fa51d6d0cef21107fb064f9f486aa2963bb2bb89 (refs/remotes/origin/main)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f fa51d6d0cef21107fb064f9f486aa2963bb2bb89 # timeout=10
+ > git branch -a -v --no-abbrev # timeout=10
+ > git checkout -b main fa51d6d0cef21107fb064f9f486aa2963bb2bb89 # timeout=10
+Commit message: "updating"
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Deploy with Helm)
+[Pipeline] sh
++ helm upgrade --install my-webapp ./webapp --namespace default
+Error: Kubernetes cluster unreachable: <html><head><meta http-equiv='refresh' content='1;url=/login?from=%2Fversion'/><script id='redirect' data-redirect-url='/login?from=%2Fversion' src='/static/e5fa5b76/scripts/redirect.js'></script></head><body style='background-color:white; color:white;'>
+Authentication required
+<!--
+-->
+
+</body></html>
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+ERROR: script returned exit code 1
+Finished: FAILURE
+```
+
+In this case, It means that my Jenkins Helm command is using a kubeconfig that point at the wrong URL. Therefore, my Jenkins environment is not configured with the correct kubeconfig.
+
+The major cause of this error It's because I'm using two different platform, I have jenkins and k3s cluster run in the server environment then, webapp and my-webapp installed on my local computer, that is the reason for the conflict. Because Jenkins runs on the server environment, It does not automatically use my local computer `~/.kubeconfig` So when Jenkins runs: `helm upgrade --install my-webapp ./webapp --namespace default`.  It's probably using:
+
+   - No Kubeconfig
+   - Wrong Kubeconfig
+   - a kubeconfig pointing to localhost/Jenkins URL.
+
+Therefore, follow these steps to configure kubeconfig for Jenkins
+
+   - SSH into your Jenkins server.
+   - Check what Jenkins sees:
+   
+   ```
+   sudo su - jenkins
+   kubectl config view
+   ```
+
+1. Copy k3s kubeconfig for jenkins.
+   On the Jenkins Server:
+```
+sudo mkdir -p /var/lib/jenkins/.kube 
+```
+
+Copy config:
+
+```
+sudo cp /etc/rancher/k3s/k3s.yaml /var/lib/jenkins/.kube/config
+```
+
+Set Permissions:
+
+```
+sudo chown -R jenkins:jenkins /var/lib/jenkins/.kube
+```
+
+Edit:
+
+```
+sudo nano /var/lib/jenkins/.kube/config
+```
+
+I have to make sure that server line is correct for local server access.
+Since Jenkins and K3s are on the same machine, use:
+
+```
+server: https://127.0.0.1:6443
+```
+Not the Public Ip.
+That's an important distinction:
+
+   - Laptop accessing cluster --> public IP
+   - Jenkins on same server ---> localhost
+
+![The Image shows the Jenkins connection and configuration fixed](image/jenkins-cluster-connection-fixed.png)
+
+After all these reconfiguration, then push again, although you might see some errors but it will one that can be easily handled, sometimes it might be a `checkout on the wrong branch` then fix it and push again, and guess what, It will build successfully.
+
+```
+pipeline {
+    agent any
+
+    environment {
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
+    }
+
+    stages {
+        stage('Deploy with Helm') {
+            steps {
+                sh 'helm upgrade --install my-webapp ./webapp --namespace default'
+            }
+        }
+    }
+}
+```
+Above is the final Jenkins file used to deploy my application due to `duplicate checkout`.
+
+Then, I **push** again and the pipeline build successfully. Image below is the result of the final project.
+
+![The Image shows the helm and jenkins ci/cd build successfully](image/pipeline-build-successfully.png)
+
+![The Image shows the helm and jenkins ci/cd build successfully](image/pipeline-build-successfully1.png)
+
+![The Image shows the helm and jenkins ci/cd build successfully](image/pipeline-build-successfully2.png)
+
+![The Image shows the helm and jenkins ci/cd build successfully](image/pipeline-build-successfully3.png)
+
    - Provide step-by-step instructions for Integrating Helm with Jenkins.
 
    - Simplify Jenkins configurations for Helm chart deployments. 
+
+Final Deliverables Checklist
+
+You are done when you have:
+
+   - Jenkins installed ---> server used
+   - Helm installed ----> installed on the local computer + Server
+   - k3s installed ----> Server used
+   - GitHub repo created
+   - Helm chart created ---> local computer
+   - Jenkinsfile created ---> local computer
+   - Jenkins pipeline working
+   - App deployed
+   - Upgrade tested
+   - Rollback tested
+   - Documentation completed
+
+
+## Final Outcome
+
+This capstone It's a complete DevOps delivery system using:
+- Jenkins
+- GitHub
+- Helm
+- Kubernetes (k3s)
+
+This is a real-world DevOps project and an excellent portfolio piece.
