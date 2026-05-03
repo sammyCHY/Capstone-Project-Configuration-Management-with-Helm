@@ -6,12 +6,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout Code') {
-            steps {
-                git 'https://github.com/sammyCHY/Capstone-Project-Configuration-Management-with-Helm.git'
-            }
-        }
-
         stage('Deploy with Helm') {
             steps {
                 sh 'helm upgrade --install my-webapp ./webapp --namespace default'
